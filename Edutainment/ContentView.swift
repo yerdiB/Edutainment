@@ -44,6 +44,11 @@ struct ContentView: View {
     func startGame() {
         range[0] += 2
         range[1] += 2
+        if range[0] > range[1]{
+            var temp: Int = range[0]
+            range[0] = range[1]
+            range[1] = temp
+        }
         for _ in 0..<(questionAmount * 2) {
             numbers.append(Int.random(in: range[0] ... range[1]))
         }
@@ -56,6 +61,8 @@ struct ContentView: View {
     func again() {
         range[0] = 0
         range[1] = 10
+        numbers.removeAll()
+        answers.removeAll()
         gameIsOn.toggle()
         checked = false
     }
