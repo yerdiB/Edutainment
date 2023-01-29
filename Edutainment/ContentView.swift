@@ -15,34 +15,38 @@ struct ContentView: View {
     @State private var questionAmounts = [5,10,15]
     @State private var numbers = [Int]()
     @State private var answers = [Int]()
-    @State private var correctOrNot = [""]
+    @State private var correctOrNot = ["","","","","","","","","","","","","","","",""]
     @State private var checked = false
+    @State private var alerted = false
     @State private var score = 0
     
     var body: some View{
         NavigationView{
             ZStack{
-                LinearGradient(colors: [.yellow, .black], startPoint: .top, endPoint: .bottom)
+                LinearGradient(colors: [.purple, .black], startPoint: .top, endPoint: .bottom)
                     .ignoresSafeArea()
                 VStack{
+                    Text("Edutainment")
+                        .foregroundColor(.white)
+                        .font(.largeTitle)
+                        .bold()
+                        .padding()
                     if gameIsOn{
                         gameView
                     }else{
                         preGameView
                     }
                 }
-                .navigationTitle("Edutainment")
-                .foregroundColor(.black)
             }
         }
     }
+    
     func startGame() {
         range[0] += 2
         range[1] += 2
         for _ in 0..<(questionAmount * 2) {
             numbers.append(Int.random(in: range[0] ... range[1]))
         }
-        
         for _ in 0..<questionAmount {
             answers.append(0)
         }
@@ -53,91 +57,123 @@ struct ContentView: View {
         range[0] = 0
         range[1] = 10
         gameIsOn.toggle()
+        checked = false
     }
     func checkAnswers(){
+        score = 0
         for i in 0..<(questionAmount) {
             if numbers[2 * i] * numbers[2 * i + 1] == answers[i]{
-                correctOrNot.append("Correct")
-                score += 1
+                correctOrNot[i] = "Correct answer, Yaay!!!"
             }else{
-                correctOrNot.append("Wrong, answer is \(numbers[2 * i] * numbers[2 * i + 1])")
+                correctOrNot[i] = "Wrong, answer is \(numbers[2 * i] * numbers[2 * i + 1])"
             }
         }
-        checked.toggle()
+        for i in 0..<(questionAmount) {
+            if correctOrNot[i] == "Correct"{
+                score += 1
+            }
+        }
+        checked = true
+        alerted.toggle()
     }
 }
 
 extension ContentView {
+    //Game View that will be shown when game is started
     private var gameView: some View{
         VStack{
             List{
                 ForEach(0 ..< questionAmount){i in
                     HStack {
                         Text("\(numbers[2 * i])  x  \(numbers[2 * i + 1])  =")
-                        TextField("Your answer", value: $answers[i], format: .number)
+                            .bold()
+                        TextField("answer", value: $answers[i], format: .number)
                             .keyboardType(.numberPad)
+                            .bold()
+                            .frame(width: 50)
+                        if checked {
+                            Text(correctOrNot[i])
+                                .bold()
+                                .foregroundColor(correctOrNot[i] == "Correct answer, Yaay!!!" ? .green : .red)
+                        }
                     }
                 }
-                HStack{
-                    Spacer()
-                    Button("Check", action: checkAnswers)
-                        .font(.headline)
-                        .foregroundColor(.black)
-                        .buttonStyle(.borderedProminent)
-                        .tint(.yellow)
-                    Spacer()
-                }
+                .listRowBackground(opacity(0))
+
             }
             .scrollContentBackground(.hidden)
-            .padding([.top, .bottom], 50)
+            .foregroundColor(.white)
+            Spacer()
             HStack{
                 Spacer()
-                Button("Try Again", action: again)
+                Button("Try again", action: again)
                     .font(.headline)
-                    .foregroundColor(.black)
+                    .foregroundColor(.white)
                     .buttonStyle(.borderedProminent)
-                    .tint(.yellow)
+                    .tint(.purple)
+                Spacer()
+                Button("Check", action: checkAnswers)
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.green)
                 Spacer()
             }
         }
-        .alert("Your score is \(score)", isPresented: $checked){
+        /*
+        .alert(score > 5 ? "Your got \(score) correct. Good job!!!" : "You got \(score) correct. Try again, you can do better!", isPresented: $alerted){
             Button("OK"){}
-        }
+        }*/
     }
+    //PreGame View that will be shown first until player starts the game
     private var preGameView: some View{
         VStack{
             List{
                 Group{
-                    HStack{
-                        Picker("Table range between", selection: $range[0]) {
+                    VStack{
+                        Text("Choose multiplication table to train between")
+                        Picker("Choose multiplication table to train", selection: $range[0]) {
                                 ForEach(2 ..< 13) {
                                     Text("\($0)")
                                 }
                             }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        Text("and")
                         Picker(" and ", selection: $range[1]) {
                                 ForEach(2 ..< 13) {
                                     Text("\($0)")
                                 }
                             }
-                        .frame(width: 110)
+                        .pickerStyle(.segmented)
                     }
-                    Picker("Question amount", selection: $questionAmount) {
-                        ForEach(questionAmounts, id: \.self){
-                            Text("\($0)")
+                    VStack{
+                        Text("Choose question amount you'll solve")
+                        Picker("Choose question amount you'll solve", selection: $questionAmount) {
+                            ForEach(questionAmounts, id: \.self){
+                                Text("\($0)")
+                            }
                         }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        
                     }
                 }
+                .listRowBackground(opacity(0))
 
             }
             .scrollContentBackground(.hidden)
-            .padding([.top, .bottom], 50)
+            .foregroundColor(.white)
+            .font(.title3)
+            .bold()
+            Spacer()
             HStack{
                 Spacer()
                 Button("Start Game", action: startGame)
                     .font(.headline)
-                    .foregroundColor(.black)
+                    .foregroundColor(.white)
                     .buttonStyle(.borderedProminent)
-                    .tint(.yellow)
+                    .tint(.purple)
                 Spacer()
             }
         }
@@ -146,12 +182,6 @@ extension ContentView {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        Group{
-            ContentView()
-                .preferredColorScheme(.light)
-            
-            ContentView()
-                .preferredColorScheme(.dark)
-        }
+        ContentView()
     }
 }
